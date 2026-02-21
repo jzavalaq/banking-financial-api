@@ -1,0 +1,101 @@
+spring:
+  application:
+    name: banking-financial-api
+
+  # Default profile - use dev if not specified
+  profiles:
+    active: dev
+
+  # Jackson JSON configuration
+  jackson:
+    default-property-inclusion: non_null
+    serialization:
+      write-dates-as-timestamps: false
+    property-naming-strategy: LOWER_CAMEL_CASE
+
+  # JPA configuration
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          batch_size: 50
+
+  # H2 Console (disabled by default)
+  h2:
+    console:
+      enabled: false
+
+  # Flyway (disabled by default for dev profile)
+  flyway:
+    enabled: false
+
+# Server configuration
+server:
+  port: 8080
+  shutdown: graceful
+  error:
+    include-message: always
+    include-binding-errors: always
+
+# Graceful shutdown timeout
+spring.lifecycle.timeout-per-shutdown-phase: 30s
+
+# Actuator configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when_authorized
+      probes:
+        enabled: true
+  tracing:
+    sampling:
+      probability: 1.0
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:change-me-in-production-minimum-256-bits-required}
+  access-token-expiration: 900000  # 15 minutes
+  refresh-token-expiration: 604800000  # 7 days
+
+# Rate limiting configuration
+rate-limit:
+  general:
+    capacity: 100
+    refill-tokens: 100
+    refill-duration: 60
+  auth:
+    capacity: 10
+    refill-tokens: 10
+    refill-duration: 60
+
+# CORS Configuration
+cors:
+  allowed-origins: ${ALLOWED_ORIGINS:http://localhost:3000}
+  allowed-methods: GET,POST,PUT,DELETE,PATCH
+  allowed-headers: "*"
+  allow-credentials: true
+
+# Logging configuration
+logging:
+  level:
+    root: INFO
+    com.banking: DEBUG
+    org.springframework.security: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# OpenAPI/Swagger configuration
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
