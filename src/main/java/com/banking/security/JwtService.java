@@ -18,6 +18,9 @@ import java.util.function.Function;
 
 /**
  * JWT Service for token generation and validation.
+ *
+ * Note: @Value injection on fields is acceptable for configuration properties
+ * as these are typically set during bean initialization and don't change.
  */
 @Service
 public class JwtService {

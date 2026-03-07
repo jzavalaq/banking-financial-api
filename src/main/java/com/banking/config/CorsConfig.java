@@ -15,6 +15,8 @@ import java.util.List;
  * CORS Configuration for the Banking API.
  *
  * Never use allowAll() or "*" for production.
+ * Note: @Value injection on fields is acceptable for configuration properties
+ * as these are typically set during bean initialization and don't change.
  */
 @Configuration
 public class CorsConfig {
@@ -43,9 +45,19 @@ public class CorsConfig {
         List<String> methods = Arrays.asList(allowedMethods.split(","));
         configuration.setAllowedMethods(methods);
 
-        // Parse allowed headers
+        // Parse allowed headers - avoid wildcard for security
         if ("*".equals(allowedHeaders.trim())) {
-            configuration.setAllowedHeaders(List.of("*"));
+            // Instead of wildcard, explicitly list common headers
+            configuration.setAllowedHeaders(Arrays.asList(
+                    "Authorization",
+                    "Content-Type",
+                    "Accept",
+                    "Origin",
+                    "Access-Control-Request-Method",
+                    "Access-Control-Request-Headers",
+                    "X-Trace-Id",
+                    "X-Requested-With"
+            ));
         } else {
             configuration.setAllowedHeaders(Arrays.asList(allowedHeaders.split(",")));
         }

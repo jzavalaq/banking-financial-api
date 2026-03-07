@@ -32,11 +32,16 @@ spring:
   # Flyway (disabled by default for dev profile)
   flyway:
     enabled: false
+    baseline-on-migrate: true
 
 # Server configuration
 server:
   port: 8080
   shutdown: graceful
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain
+    min-response-size: 1024
   error:
     include-message: always
     include-binding-errors: always
@@ -52,7 +57,7 @@ management:
         include: health,info,metrics
   endpoint:
     health:
-      show-details: when_authorized
+      show-details: when-authorized
       probes:
         enabled: true
   tracing:
@@ -79,8 +84,8 @@ rate-limit:
 # CORS Configuration
 cors:
   allowed-origins: ${ALLOWED_ORIGINS:http://localhost:3000}
-  allowed-methods: GET,POST,PUT,DELETE,PATCH
-  allowed-headers: "*"
+  allowed-methods: GET,POST,PUT,DELETE,PATCH,OPTIONS
+  allowed-headers: Authorization,Content-Type,Accept,Origin,X-Trace-Id,X-Requested-With,Access-Control-Request-Method,Access-Control-Request-Headers
   allow-credentials: true
 
 # Logging configuration

@@ -60,8 +60,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     );
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
+                    log.debug("JWT authentication successful for user: {}", username);
+                } else {
+                    log.warn("Invalid JWT token for user: {}", username);
                 }
             }
+        } catch (io.jsonwebtoken.security.SignatureException e) {
+            log.error("JWT signature validation failed: {}", e.getMessage());
+        } catch (io.jsonwebtoken.ExpiredJwtException e) {
+            log.warn("JWT token expired: {}", e.getMessage());
+        } catch (io.jsonwebtoken.MalformedJwtException e) {
+            log.error("Malformed JWT token: {}", e.getMessage());
         } catch (Exception e) {
             log.error("JWT authentication failed: {}", e.getMessage());
         }
