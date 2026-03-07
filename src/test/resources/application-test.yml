@@ -1,0 +1,61 @@
+# Test profile configuration
+spring:
+  config:
+    activate:
+      on-profile: test
+
+  # H2 Database for testing
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  # Disable H2 console in tests
+  h2:
+    console:
+      enabled: false
+
+  # JPA configuration for tests
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+
+  # Disable Flyway in tests
+  flyway:
+    enabled: false
+
+# JWT Configuration for tests
+jwt:
+  secret: test-secret-key-for-testing-only-32chars-minimum
+  access-token-expiration: 900000
+  refresh-token-expiration: 604800000
+
+# Rate limiting for tests
+rate-limit:
+  general:
+    capacity: 1000
+    refill-tokens: 1000
+    refill-duration: 60
+  auth:
+    capacity: 100
+    refill-tokens: 100
+    refill-duration: 60
+
+# CORS for tests
+cors:
+  allowed-origins: http://localhost:3000,http://localhost:8080
+  allowed-methods: GET,POST,PUT,DELETE,PATCH,OPTIONS
+  allowed-headers: Authorization,Content-Type,Accept,Origin,X-Trace-Id
+  allow-credentials: true
+
+# Logging for tests
+logging:
+  level:
+    root: WARN
+    com.banking: DEBUG
+    org.springframework.security: WARN
