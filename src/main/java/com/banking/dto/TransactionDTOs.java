@@ -64,6 +64,7 @@ public class TransactionDTOs {
             Transaction.TransactionStatus status,
             String description,
             String category,
+            Long version,
             Instant createdAt
     ) {}
 

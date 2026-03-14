@@ -1,0 +1,832 @@
+{
+  "info": {
+    "name": "Banking Financial API",
+    "description": "Production-grade banking and financial services API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "type": "string",
+      "disabled": true
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{jwt_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"john_doe\",\n  \"password\": \"SecurePass123!\",\n  \"email\": \"john.doe@example.com\",\n  \"role\": \"CUSTOMER\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "register"]
+            },
+            "description": "Register a new user account"
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"john_doe\",\n  \"password\": \"SecurePass123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "login"]
+            },
+            "description": "Login with credentials to get JWT token"
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"your_refresh_token_here\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/refresh",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "refresh"]
+            },
+            "description": "Refresh access token using refresh token"
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/logout",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "logout"]
+            },
+            "description": "Logout and invalidate refresh token"
+          },
+          "response": []
+        }
+      ],
+      "description": "Authentication and authorization endpoints"
+    },
+    {
+      "name": "Customers",
+      "item": [
+        {
+          "name": "Create Customer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"john.doe.customer@example.com\",\n  \"phone\": \"+1234567890\",\n  \"address\": \"123 Main Street\",\n  \"city\": \"New York\",\n  \"state\": \"NY\",\n  \"zipCode\": \"10001\",\n  \"country\": \"USA\",\n  \"dateOfBirth\": \"1990-01-15\",\n  \"taxId\": \"123-45-6789\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/customers",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "customers"]
+            },
+            "description": "Create a new customer"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Customer by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/customers/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "customers", "1"]
+            },
+            "description": "Get customer details by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Customer",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Smith\",\n  \"email\": \"john.smith@example.com\",\n  \"phone\": \"+1234567890\",\n  \"address\": \"456 Oak Avenue\",\n  \"city\": \"Los Angeles\",\n  \"state\": \"CA\",\n  \"zipCode\": \"90001\",\n  \"country\": \"USA\",\n  \"dateOfBirth\": \"1990-01-15\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/customers/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "customers", "1"]
+            },
+            "description": "Update customer information"
+          },
+          "response": []
+        },
+        {
+          "name": "List Customers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/customers?page=0&size=20&sortBy=createdAt&sortDir=desc",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "customers"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt"
+                },
+                {
+                  "key": "sortDir",
+                  "value": "desc"
+                }
+              ]
+            },
+            "description": "List all customers with pagination"
+          },
+          "response": []
+        },
+        {
+          "name": "Search Customers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/customers/search?q=john&page=0&size=20",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "customers", "search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "john"
+                },
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Search customers by name, email, or phone"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Accounts",
+      "item": [
+        {
+          "name": "Create Account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": 1,\n  \"accountType\": \"CHECKING\",\n  \"initialBalance\": 1000.00\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/accounts",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "accounts"]
+            },
+            "description": "Create a new account for a customer"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Account by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/accounts/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "accounts", "1"]
+            },
+            "description": "Get account details by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Account by Number",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/accounts/number/ACC001",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "accounts", "number", "ACC001"]
+            },
+            "description": "Get account details by account number"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Account Balance",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/accounts/ACC001/balance",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "accounts", "ACC001", "balance"]
+            },
+            "description": "Get account balance"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Accounts by Customer",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/accounts/customer/1?page=0&size=20",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "accounts", "customer", "1"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Get all accounts for a customer"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Account Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"FROZEN\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/accounts/1/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "accounts", "1", "status"]
+            },
+            "description": "Update account status (ACTIVE, FROZEN, CLOSED)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Transactions",
+      "item": [
+        {
+          "name": "Deposit",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountNumber\": \"ACC001\",\n  \"amount\": 500.00,\n  \"description\": \"Paycheck deposit\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/transactions/deposit",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "transactions", "deposit"]
+            },
+            "description": "Deposit funds to an account"
+          },
+          "response": []
+        },
+        {
+          "name": "Withdraw",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountNumber\": \"ACC001\",\n  \"amount\": 100.00,\n  \"description\": \"ATM withdrawal\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/transactions/withdraw",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "transactions", "withdraw"]
+            },
+            "description": "Withdraw funds from an account"
+          },
+          "response": []
+        },
+        {
+          "name": "Transfer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fromAccountNumber\": \"ACC001\",\n  \"toAccountNumber\": \"ACC002\",\n  \"amount\": 250.00,\n  \"description\": \"Transfer to savings\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/transactions/transfer",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "transactions", "transfer"]
+            },
+            "description": "Transfer funds between accounts"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Transaction by Reference",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/transactions/TXN123ABC456",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "transactions", "TXN123ABC456"]
+            },
+            "description": "Get transaction by reference number"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Transaction History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/transactions/account/ACC001?page=0&size=20",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "transactions", "account", "ACC001"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Get transaction history for an account"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Payments",
+      "item": [
+        {
+          "name": "Create Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountNumber\": \"ACC001\",\n  \"paymentType\": \"BILL\",\n  \"amount\": 150.00,\n  \"payeeName\": \"Electric Company\",\n  \"payeeAccountNumber\": \"UTIL-001\",\n  \"payeeReference\": \"INV-2024-001\",\n  \"scheduledDate\": \"2024-12-15\",\n  \"description\": \"Monthly electric bill\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/payments",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "payments"]
+            },
+            "description": "Create a new payment"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Payment by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/payments/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "payments", "1"]
+            },
+            "description": "Get payment by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Payment by Reference",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/payments/reference/PMT123ABC456",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "payments", "reference", "PMT123ABC456"]
+            },
+            "description": "Get payment by reference number"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Payments by Account",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/payments/account/ACC001?page=0&size=20",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "payments", "account", "ACC001"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Get all payments for an account"
+          },
+          "response": []
+        },
+        {
+          "name": "Cancel Payment",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/payments/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "payments", "1"]
+            },
+            "description": "Cancel a pending payment"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Loans",
+      "item": [
+        {
+          "name": "Apply for Loan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": 1,\n  \"accountId\": 1,\n  \"loanType\": \"PERSONAL\",\n  \"principalAmount\": 10000.00,\n  \"interestRate\": 5.5,\n  \"termMonths\": 36,\n  \"purpose\": \"Home renovation\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/loans",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "loans"]
+            },
+            "description": "Apply for a new loan"
+          },
+          "response": []
+        },
+        {
+          "name": "Approve/Reject Loan",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"approved\": true,\n  \"approvedBy\": \"manager\",\n  \"monthlyPayment\": 301.00,\n  \"notes\": \"Loan approved for home renovation\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/loans/1/approve",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "loans", "1", "approve"]
+            },
+            "description": "Approve or reject a loan application"
+          },
+          "response": []
+        },
+        {
+          "name": "Disburse Loan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"disbursementDate\": \"2024-12-01\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/loans/1/disburse",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "loans", "1", "disburse"]
+            },
+            "description": "Disburse approved loan to customer account"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Loan by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/loans/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "loans", "1"]
+            },
+            "description": "Get loan by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Loan by Number",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/loans/number/LOAN001",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "loans", "number", "LOAN001"]
+            },
+            "description": "Get loan by loan number"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Loans by Customer",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/loans/customer/1?page=0&size=20",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "loans", "customer", "1"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Get all loans for a customer"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
