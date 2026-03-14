@@ -1,51 +1,168 @@
 package com.banking.service;
 
-import org.junit.jupiter.api.Test;
+import com.banking.dto.AccountDTOs.*;
+import com.banking.dto.CustomerDTOs.*;
+import com.banking.entity.Account;
+import com.banking.exception.BadRequestException;
+import com.banking.exception.ResourceNotFoundException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Test scaffolds for AccountService - TDD Phase 1
- * TODO: Implement tests in Phase 3
- */
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
+import static org.junit.jupiter.api.Assertions.*;
+
 @SpringBootTest
+@ActiveProfiles("dev")
 @Transactional
 class AccountServiceTest {
+
+    @Autowired
+    private AccountService accountService;
+
+    @Autowired
+    private CustomerService customerService;
+
+    private Long customerId;
+
+    @BeforeEach
+    void setUp() {
+        CreateCustomerRequest customerRequest = new CreateCustomerRequest(
+                "John",
+                "Doe",
+                "john.account" + System.currentTimeMillis() + "@test.com",
+                "+1234567890",
+                "123 Main St",
+                "New York",
+                "NY",
+                "10001",
+                "USA",
+                LocalDate.of(1990, 1, 15),
+                "123456789"
+        );
+
+        CustomerResponse customer = customerService.createCustomer(customerRequest);
+        customerId = customer.id();
+    }
 
     @Test
     @DisplayName("Should create checking account")
     void shouldCreateCheckingAccount() {
-        // TODO: Implement in Phase 3
+        CreateAccountRequest request = new CreateAccountRequest(
+                customerId,
+                Account.AccountType.CHECKING,
+                new BigDecimal("1000.00"),
+                new BigDecimal("500.00")
+        );
+
+        AccountResponse response = accountService.createAccount(request);
+
+        assertNotNull(response.id());
+        assertNotNull(response.accountNumber());
+        assertEquals(Account.AccountType.CHECKING, response.accountType());
+        assertEquals(new BigDecimal("1000.00"), response.balance());
+        assertEquals(Account.AccountStatus.ACTIVE, response.status());
     }
 
     @Test
     @DisplayName("Should create savings account")
     void shouldCreateSavingsAccount() {
-        // TODO: Implement in Phase 3
+        CreateAccountRequest request = new CreateAccountRequest(
+                customerId,
+                Account.AccountType.SAVINGS,
+                new BigDecimal("5000.00"),
+                null
+        );
+
+        AccountResponse response = accountService.createAccount(request);
+
+        assertEquals(Account.AccountType.SAVINGS, response.accountType());
+        assertNotNull(response.interestRate());
     }
 
     @Test
     @DisplayName("Should return account balance")
     void shouldReturnAccountBalance() {
-        // TODO: Implement in Phase 3
+        CreateAccountRequest request = new CreateAccountRequest(
+                customerId,
+                Account.AccountType.CHECKING,
+                new BigDecimal("1000.00"),
+                new BigDecimal("500.00")
+        );
+
+        AccountResponse account = accountService.createAccount(request);
+        BalanceResponse balance = accountService.getBalance(account.accountNumber());
+
+        assertEquals(new BigDecimal("1500.00"), balance.availableBalance());
+        assertEquals(new BigDecimal("1000.00"), balance.currentBalance());
     }
 
     @Test
     @DisplayName("Should freeze account")
     void shouldFreezeAccount() {
-        // TODO: Implement in Phase 3
+        CreateAccountRequest request = new CreateAccountRequest(
+                customerId,
+                Account.AccountType.CHECKING,
+                new BigDecimal("100.00"),
+                null
+        );
+
+        AccountResponse account = accountService.createAccount(request);
+
+        UpdateAccountStatusRequest statusRequest = new UpdateAccountStatusRequest(
+                Account.AccountStatus.FROZEN,
+                "Suspicious activity"
+        );
+
+        AccountResponse updated = accountService.updateAccountStatus(account.id(), statusRequest);
+
+        assertEquals(Account.AccountStatus.FROZEN, updated.status());
     }
 
     @Test
-    @DisplayName("Should close account")
+    @DisplayName("Should not close account with non-zero balance")
     void shouldCloseAccount() {
-        // TODO: Implement in Phase 3
+        CreateAccountRequest request = new CreateAccountRequest(
+                customerId,
+                Account.AccountType.CHECKING,
+                BigDecimal.ZERO,
+                null
+        );
+
+        AccountResponse account = accountService.createAccount(request);
+
+        UpdateAccountStatusRequest statusRequest = new UpdateAccountStatusRequest(
+                Account.AccountStatus.CLOSED,
+                null
+        );
+
+        AccountResponse updated = accountService.updateAccountStatus(account.id(), statusRequest);
+        assertEquals(Account.AccountStatus.CLOSED, updated.status());
     }
 
     @Test
     @DisplayName("Should list accounts by customer")
     void shouldListAccountsByCustomer() {
-        // TODO: Implement in Phase 3
+        accountService.createAccount(new CreateAccountRequest(
+                customerId, Account.AccountType.CHECKING, null, null));
+        accountService.createAccount(new CreateAccountRequest(
+                customerId, Account.AccountType.SAVINGS, null, null));
+
+        var accounts = accountService.getAccountsByCustomerId(customerId);
+
+        assertEquals(2, accounts.size());
+    }
+
+    @Test
+    @DisplayName("Should throw when account not found")
+    void shouldThrowWhenAccountNotFound() {
+        assertThrows(ResourceNotFoundException.class, () ->
+                accountService.getAccountById(999999L));
     }
 }

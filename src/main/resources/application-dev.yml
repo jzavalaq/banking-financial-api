@@ -10,6 +10,11 @@ spring:
     username: sa
     password:
     driver-class-name: org.h2.Driver
+    hikari:
+      connection-timeout: 30000
+      maximum-pool-size: 10
+      minimum-idle: 2
+      max-lifetime: 1800000
 
   # Enable H2 console in dev
   h2:
@@ -29,14 +34,6 @@ spring:
   # Disable Flyway in dev (use ddl-auto)
   flyway:
     enabled: false
-
-# HikariCP configuration
-  datasource:
-    hikari:
-      connection-timeout: 30000
-      maximum-pool-size: 10
-      minimum-idle: 2
-      max-lifetime: 1800000
 
 # Logging for dev
 logging:
