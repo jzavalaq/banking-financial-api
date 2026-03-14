@@ -54,6 +54,9 @@ public class CustomerService {
                 .email(request.email())
                 .role(Role.CUSTOMER)
                 .enabled(true)
+                .accountNonExpired(true)
+                .accountNonLocked(true)
+                .credentialsNonExpired(true)
                 .build();
         user = userRepository.save(user);
 
