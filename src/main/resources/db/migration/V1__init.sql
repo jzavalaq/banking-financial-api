@@ -66,6 +66,7 @@ CREATE TABLE transactions (
     status VARCHAR(20) NOT NULL DEFAULT 'COMPLETED',
     description VARCHAR(500),
     category VARCHAR(100),
+    version BIGINT,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_transaction_account FOREIGN KEY (account_id) REFERENCES accounts(id),
     CONSTRAINT fk_transaction_related_account FOREIGN KEY (related_account_id) REFERENCES accounts(id)
@@ -126,20 +127,43 @@ CREATE TABLE audit_logs (
     details TEXT,
     ip_address VARCHAR(50) NOT NULL,
     user_agent VARCHAR(500),
+    version BIGINT,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Create indexes for performance
+-- Users table indexes
+CREATE INDEX idx_users_username ON users(username);
+CREATE INDEX idx_users_email ON users(email);
+
+-- Customers table indexes
 CREATE INDEX idx_customers_email ON customers(email);
 CREATE INDEX idx_customers_tax_id ON customers(tax_id);
 CREATE INDEX idx_customers_kyc_status ON customers(kyc_status);
+CREATE INDEX idx_customers_phone ON customers(phone);
+CREATE INDEX idx_customers_user_id ON customers(user_id);
+
+-- Accounts table indexes
 CREATE INDEX idx_accounts_customer_id ON accounts(customer_id);
 CREATE INDEX idx_accounts_status ON accounts(status);
+CREATE INDEX idx_accounts_account_number ON accounts(account_number);
+
+-- Transactions table indexes
 CREATE INDEX idx_transactions_account_id ON transactions(account_id);
 CREATE INDEX idx_transactions_created_at ON transactions(created_at);
+CREATE INDEX idx_transactions_reference ON transactions(transaction_reference);
+
+-- Payments table indexes
 CREATE INDEX idx_payments_account_id ON payments(account_id);
 CREATE INDEX idx_payments_status ON payments(status);
+CREATE INDEX idx_payments_reference ON payments(payment_reference);
+CREATE INDEX idx_payments_scheduled_date ON payments(scheduled_date);
+
+-- Loans table indexes
 CREATE INDEX idx_loans_customer_id ON loans(customer_id);
 CREATE INDEX idx_loans_status ON loans(status);
+CREATE INDEX idx_loans_loan_number ON loans(loan_number);
+
+-- Audit logs table indexes
 CREATE INDEX idx_audit_logs_timestamp ON audit_logs(timestamp);
 CREATE INDEX idx_audit_logs_entity ON audit_logs(entity_type, entity_id);

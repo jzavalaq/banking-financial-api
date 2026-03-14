@@ -47,6 +47,9 @@ public class AuditLog {
     @Column(length = 500)
     private String userAgent;
 
+    @Version
+    private Long version;
+
     @CreatedDate
     @Column(nullable = false, updatable = false)
     private Instant createdAt;

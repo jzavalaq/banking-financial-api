@@ -56,6 +56,9 @@ public class Transaction {
     @Column(length = 100)
     private String category;
 
+    @Version
+    private Long version;
+
     @CreatedDate
     @Column(nullable = false, updatable = false)
     private Instant createdAt;

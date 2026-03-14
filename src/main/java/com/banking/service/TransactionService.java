@@ -24,6 +24,9 @@ import java.util.UUID;
 
 /**
  * Service for Transaction operations.
+ *
+ * Handles business logic for financial transactions including deposits,
+ * withdrawals, and transfers between accounts.
  */
 @Service
 @RequiredArgsConstructor
@@ -232,6 +235,7 @@ public class TransactionService {
                 transaction.getStatus(),
                 transaction.getDescription(),
                 transaction.getCategory(),
+                transaction.getVersion(),
                 transaction.getCreatedAt()
         );
     }
