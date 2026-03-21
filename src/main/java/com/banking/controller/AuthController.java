@@ -58,15 +58,28 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    @Operation(summary = "Logout user", description = "Invalidates the current session and refresh token")
+    @Operation(summary = "Logout user", description = "Invalidates the current session and blacklists tokens")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Logout successful")
     })
     public ResponseEntity<Void> logout(
             @AuthenticationPrincipal UserDetails userDetails,
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
             @Valid @RequestBody(required = false) LogoutRequest request) {
         if (userDetails != null) {
-            authService.logout(userDetails.getUsername());
+            // Extract and blacklist the access token from Authorization header
+            String accessToken = null;
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                accessToken = authHeader.substring(7);
+            }
+
+            // Blacklist access token (refresh token blacklisting handled by short expiry)
+            authService.logout(userDetails.getUsername(), accessToken);
+
+            // Also blacklist refresh token if provided
+            if (request != null && request.refreshToken() != null) {
+                authService.blacklistRefreshToken(request.refreshToken());
+            }
         }
         return ResponseEntity.ok().build();
     }

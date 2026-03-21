@@ -71,7 +71,11 @@ jwt:
   refresh-token-expiration: 604800000  # 7 days
 
 # Rate limiting configuration
+# Current: In-memory (ConcurrentHashMap) - suitable for single-instance
+# For horizontal scaling, configure Redis and use Bucket4j Redis backend
 rate-limit:
+  backend: in-memory  # Options: in-memory, redis (requires redis-url)
+  # redis-url: ${REDIS_URL:redis://localhost:6379}
   general:
     capacity: 100
     refill-tokens: 100
@@ -80,6 +84,13 @@ rate-limit:
     capacity: 10
     refill-tokens: 10
     refill-duration: 60
+
+# Token blacklist configuration
+# Current: In-memory (ConcurrentHashMap) - suitable for single-instance
+# For horizontal scaling, configure Redis for shared blacklist
+token-blacklist:
+  backend: in-memory  # Options: in-memory, redis
+  cleanup-interval: 300000  # 5 minutes in milliseconds
 
 # CORS Configuration
 cors:

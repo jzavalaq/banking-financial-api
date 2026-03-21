@@ -19,6 +19,10 @@ import java.io.IOException;
 
 /**
  * JWT Authentication Filter for validating bearer tokens on each request.
+ *
+ * <p>Validates JWT tokens and checks against the token blacklist for revoked tokens.</p>
+ *
+ * @see TokenBlacklistService
  */
 @Component
 @RequiredArgsConstructor
@@ -27,6 +31,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
+    private final TokenBlacklistService tokenBlacklistService;
 
     @Override
     protected void doFilterInternal(
@@ -47,6 +52,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         jwt = authHeader.substring(7);
 
         try {
+            // Check if token is blacklisted (revoked via logout)
+            if (tokenBlacklistService.isBlacklisted(jwt)) {
+                log.warn("Rejected blacklisted JWT token");
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType("application/json");
+                response.getWriter().write("{\"error\":\"Token has been revoked\",\"message\":\"Please log in again\"}");
+                return;
+            }
+
             username = jwtService.extractUsername(jwt);
 
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {

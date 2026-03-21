@@ -22,11 +22,39 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Rate Limiting Filter for API protection.
  *
- * Enforces rate limits based on:
- * - Auth endpoints (/api/v1/auth/**): 10 requests per minute
- * - General endpoints: 100 requests per minute
+ * <h3>Current Implementation</h3>
+ * <p>Uses in-memory ConcurrentHashMap storage with Bucket4j token bucket algorithm.
+ * This provides per-instance rate limiting suitable for single-instance deployments.</p>
  *
- * Uses Bucket4j token bucket algorithm for distributed rate limiting.
+ * <h3>Rate Limits</h3>
+ * <ul>
+ *   <li>Auth endpoints (/api/v1/auth/**): 10 requests per minute</li>
+ *   <li>General endpoints: 100 requests per minute</li>
+ * </ul>
+ *
+ * <h3>Horizontal Scaling (Redis Backend)</h3>
+ * <p>For multi-instance deployments, replace with Redis-backed implementation:</p>
+ * <pre>
+ * // 1. Add dependency:
+ * // implementation 'io.github.bucket4j:bucket4j-redis:8.3.0'
+ * // implementation 'io.lettuce:lettuce-core:6.2.0'
+ *
+ * // 2. Configure Redis in application.yml:
+ * // spring:
+ * //   data:
+ * //     redis:
+ * //       url: ${REDIS_URL:redis://localhost:6379}
+ *
+ * // 3. Replace ConcurrentHashMap with LettuceBasedProxyManager:
+ * // &#64;Bean
+ * // public ProxyManager&lt;String&gt; buckets(RedisClient redisClient) {
+ * //     return LettuceBasedProxyManager.builderFor(redisClient)
+ * //         .withExpirationAfterWrite(Duration.ofHours(1))
+ * //         .build();
+ * // }
+ * </pre>
+ *
+ * @see <a href="https://bucket4j.com/8.3.0/toc.html#redis-integration">Bucket4j Redis Integration</a>
  */
 @Component
 @Order(1)
