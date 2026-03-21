@@ -8,6 +8,7 @@ import com.banking.exception.BadRequestException;
 import com.banking.exception.ResourceNotFoundException;
 import com.banking.repository.UserRepository;
 import com.banking.security.JwtService;
+import com.banking.security.TokenBlacklistService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +34,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final AuditLogger auditLogger;
+    private final TokenBlacklistService tokenBlacklistService;
 
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private HttpServletRequest request;
@@ -147,15 +149,31 @@ public class AuthService {
     }
 
     @Transactional
-    public void logout(String username) {
+    public void logout(String username, String token) {
         log.info("User logging out: {}", username);
 
         String clientIp = getClientIp();
         auditLogger.logSecurityEvent("LOGOUT", username, clientIp,
                 "User logged out");
 
-        // In a real implementation, you would invalidate the refresh token
-        // by adding it to a blacklist or removing from database
+        // Blacklist the access token so it can't be used again
+        if (token != null && !token.isEmpty()) {
+            tokenBlacklistService.blacklistToken(token);
+            log.info("Access token blacklisted for user: {}", username);
+        }
+    }
+
+    /**
+     * Legacy logout method for backward compatibility.
+     * @deprecated Use logout(String username, String token) instead
+     */
+    @Deprecated
+    @Transactional
+    public void logout(String username) {
+        log.warn("Using deprecated logout method - token will not be blacklisted");
+        String clientIp = getClientIp();
+        auditLogger.logSecurityEvent("LOGOUT", username, clientIp,
+                "User logged out (legacy method)");
     }
 
     private String getClientIp() {
@@ -173,5 +191,18 @@ public class AuthService {
             ip = ip.split(",")[0].trim();
         }
         return ip;
+    }
+
+    /**
+     * Blacklists a refresh token.
+     * Called during logout to ensure the refresh token can't be used after logout.
+     *
+     * @param refreshToken The refresh token to blacklist
+     */
+    public void blacklistRefreshToken(String refreshToken) {
+        if (refreshToken != null && !refreshToken.isEmpty()) {
+            tokenBlacklistService.blacklistToken(refreshToken);
+            log.info("Refresh token blacklisted");
+        }
     }
 }
