@@ -28,6 +28,9 @@ import java.util.UUID;
 
 /**
  * Service for Loan operations.
+ *
+ * Handles business logic for loan applications, approvals, disbursements,
+ * and loan inquiries.
  */
 @Service
 @RequiredArgsConstructor
@@ -175,7 +178,7 @@ public class LoanService {
     }
 
     @Transactional(readOnly = true)
-    public PagedResponse<LoanSummary> getLoansByCustomerId(Long customerId, int page, int size) {
+    public PagedResponse<LoanSummary> getLoansByCustomerIdPaged(Long customerId, int page, int size) {
         int safeSize = Math.min(size, MAX_PAGE_SIZE);
         Pageable pageable = PageRequest.of(page, safeSize, Sort.by("createdAt").descending());
 

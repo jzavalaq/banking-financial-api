@@ -110,4 +110,34 @@ class AuthServiceTest {
 
         assertThrows(BadRequestException.class, () -> authService.register(request2));
     }
+
+    @Test
+    @DisplayName("Should reject duplicate email on registration")
+    void shouldRejectDuplicateEmail() {
+        String email = "duplicate" + System.currentTimeMillis() + "@example.com";
+
+        RegisterRequest request1 = new RegisterRequest(
+                "user1" + System.currentTimeMillis(),
+                "Password123",
+                email
+        );
+
+        authService.register(request1);
+
+        RegisterRequest request2 = new RegisterRequest(
+                "user2" + System.currentTimeMillis(),
+                "Password456",
+                email
+        );
+
+        assertThrows(BadRequestException.class, () -> authService.register(request2));
+    }
+
+    @Test
+    @DisplayName("Should throw when refreshing with invalid token")
+    void shouldThrowWhenRefreshingWithInvalidToken() {
+        RefreshTokenRequest request = new RefreshTokenRequest("invalid-token");
+
+        assertThrows(Exception.class, () -> authService.refreshToken(request));
+    }
 }

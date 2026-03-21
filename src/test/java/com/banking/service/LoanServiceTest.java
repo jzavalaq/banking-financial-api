@@ -163,4 +163,163 @@ class LoanServiceTest {
         assertNotNull(response.monthlyPayment());
         assertTrue(response.monthlyPayment().compareTo(BigDecimal.ZERO) > 0);
     }
+
+    @Test
+    @DisplayName("Should throw when applying for loan with non-existent customer")
+    void shouldThrowWhenApplyingForLoanWithNonExistentCustomer() {
+        LoanApplicationRequest request = new LoanApplicationRequest(
+                999999L, accountNumber, Loan.LoanType.PERSONAL,
+                new BigDecimal("5000.00"), 12, null
+        );
+
+        assertThrows(Exception.class, () -> loanService.applyForLoan(request));
+    }
+
+    @Test
+    @DisplayName("Should throw when applying for loan with non-existent account")
+    void shouldThrowWhenApplyingForLoanWithNonExistentAccount() {
+        LoanApplicationRequest request = new LoanApplicationRequest(
+                customerId, "BA999999", Loan.LoanType.PERSONAL,
+                new BigDecimal("5000.00"), 12, null
+        );
+
+        assertThrows(Exception.class, () -> loanService.applyForLoan(request));
+    }
+
+    @Test
+    @DisplayName("Should throw when disbursement account belongs to different customer")
+    void shouldThrowWhenDisbursementAccountBelongsToDifferentCustomer() {
+        // Create another customer
+        CreateCustomerRequest anotherCustomerRequest = new CreateCustomerRequest(
+                "Jane", "Smith", "jane.loan" + System.currentTimeMillis() + "@test.com",
+                "+1987654321", "456 Oak Ave", "Boston", "MA", "02101", "USA",
+                LocalDate.of(1985, 5, 20), "999999999"
+        );
+        Long anotherCustomerId = customerService.createCustomer(anotherCustomerRequest).id();
+
+        // Try to apply for loan with account from different customer
+        LoanApplicationRequest request = new LoanApplicationRequest(
+                anotherCustomerId, accountNumber, Loan.LoanType.PERSONAL,
+                new BigDecimal("5000.00"), 12, null
+        );
+
+        assertThrows(Exception.class, () -> loanService.applyForLoan(request));
+    }
+
+    @Test
+    @DisplayName("Should throw when approving non-existent loan")
+    void shouldThrowWhenApprovingNonExistentLoan() {
+        LoanApprovalRequest request = new LoanApprovalRequest(true, null, null);
+
+        assertThrows(Exception.class, () -> loanService.approveLoan(999999L, request));
+    }
+
+    @Test
+    @DisplayName("Should throw when approving already approved loan")
+    void shouldThrowWhenApprovingAlreadyApprovedLoan() {
+        LoanResponse loan = loanService.applyForLoan(new LoanApplicationRequest(
+                customerId, accountNumber, Loan.LoanType.PERSONAL,
+                new BigDecimal("5000.00"), 12, null));
+
+        loanService.approveLoan(loan.id(), new LoanApprovalRequest(true, null, null));
+
+        assertThrows(Exception.class, () ->
+                loanService.approveLoan(loan.id(), new LoanApprovalRequest(true, null, null)));
+    }
+
+    @Test
+    @DisplayName("Should throw when disbursing non-existent loan")
+    void shouldThrowWhenDisbursingNonExistentLoan() {
+        LoanDisbursementRequest request = new LoanDisbursementRequest("Test");
+
+        assertThrows(Exception.class, () -> loanService.disburseLoan(999999L, request));
+    }
+
+    @Test
+    @DisplayName("Should throw when disbursing pending loan")
+    void shouldThrowWhenDisbursingPendingLoan() {
+        LoanResponse loan = loanService.applyForLoan(new LoanApplicationRequest(
+                customerId, accountNumber, Loan.LoanType.PERSONAL,
+                new BigDecimal("5000.00"), 12, null));
+
+        LoanDisbursementRequest request = new LoanDisbursementRequest("Test");
+
+        assertThrows(Exception.class, () -> loanService.disburseLoan(loan.id(), request));
+    }
+
+    @Test
+    @DisplayName("Should throw when disbursing already disbursed loan")
+    void shouldThrowWhenDisbursingAlreadyDisbursedLoan() {
+        LoanResponse loan = loanService.applyForLoan(new LoanApplicationRequest(
+                customerId, accountNumber, Loan.LoanType.PERSONAL,
+                new BigDecimal("5000.00"), 12, null));
+
+        loanService.approveLoan(loan.id(), new LoanApprovalRequest(true, null, null));
+        loanService.disburseLoan(loan.id(), new LoanDisbursementRequest("Test"));
+
+        assertThrows(Exception.class, () ->
+                loanService.disburseLoan(loan.id(), new LoanDisbursementRequest("Test")));
+    }
+
+    @Test
+    @DisplayName("Should get loan by number")
+    void shouldGetLoanByNumber() {
+        LoanResponse loan = loanService.applyForLoan(new LoanApplicationRequest(
+                customerId, accountNumber, Loan.LoanType.PERSONAL,
+                new BigDecimal("5000.00"), 12, null));
+
+        LoanResponse found = loanService.getLoanByNumber(loan.loanNumber());
+
+        assertEquals(loan.id(), found.id());
+        assertEquals(loan.loanNumber(), found.loanNumber());
+    }
+
+    @Test
+    @DisplayName("Should throw when loan number not found")
+    void shouldThrowWhenLoanNumberNotFound() {
+        assertThrows(Exception.class, () -> loanService.getLoanByNumber("LN999999"));
+    }
+
+    @Test
+    @DisplayName("Should get paginated loans by customer")
+    void shouldGetPaginatedLoansByCustomer() {
+        loanService.applyForLoan(new LoanApplicationRequest(
+                customerId, accountNumber, Loan.LoanType.PERSONAL,
+                new BigDecimal("5000.00"), 12, null));
+
+        var response = loanService.getLoansByCustomerIdPaged(customerId, 0, 10);
+
+        assertNotNull(response.content());
+        assertTrue(response.totalElements() >= 1);
+    }
+
+    @Test
+    @DisplayName("Should throw when applying for loan with frozen account")
+    void shouldThrowWhenApplyingForLoanWithFrozenAccount() {
+        // Freeze the account
+        var account = accountService.getAccountByNumber(accountNumber);
+        accountService.updateAccountStatus(account.id(),
+                new UpdateAccountStatusRequest(Account.AccountStatus.FROZEN, "Test"));
+
+        LoanApplicationRequest request = new LoanApplicationRequest(
+                customerId, accountNumber, Loan.LoanType.PERSONAL,
+                new BigDecimal("5000.00"), 12, null
+        );
+
+        assertThrows(Exception.class, () -> loanService.applyForLoan(request));
+    }
+
+    @Test
+    @DisplayName("Should apply for auto loan")
+    void shouldApplyForAutoLoan() {
+        LoanApplicationRequest request = new LoanApplicationRequest(
+                customerId, accountNumber, Loan.LoanType.AUTO,
+                new BigDecimal("25000.00"), 48, "Car purchase"
+        );
+
+        LoanResponse response = loanService.applyForLoan(request);
+
+        assertEquals(Loan.LoanType.AUTO, response.loanType());
+        assertEquals(new BigDecimal("0.085"), response.interestRate());
+    }
 }

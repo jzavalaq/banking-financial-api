@@ -165,4 +165,91 @@ class AccountServiceTest {
         assertThrows(ResourceNotFoundException.class, () ->
                 accountService.getAccountById(999999L));
     }
+
+    @Test
+    @DisplayName("Should throw when account not found by number")
+    void shouldThrowWhenAccountNotFoundByNumber() {
+        assertThrows(ResourceNotFoundException.class, () ->
+                accountService.getAccountByNumber("BA999999"));
+    }
+
+    @Test
+    @DisplayName("Should throw when getting balance for non-existent account")
+    void shouldThrowWhenBalanceForNonExistentAccount() {
+        assertThrows(ResourceNotFoundException.class, () ->
+                accountService.getBalance("BA999999"));
+    }
+
+    @Test
+    @DisplayName("Should return paginated accounts by customer")
+    void shouldReturnPaginatedAccountsByCustomer() {
+        accountService.createAccount(new CreateAccountRequest(
+                customerId, Account.AccountType.CHECKING, null, null));
+        accountService.createAccount(new CreateAccountRequest(
+                customerId, Account.AccountType.SAVINGS, null, null));
+
+        var response = accountService.getAccountsByCustomerIdPaged(customerId, 0, 10);
+
+        assertNotNull(response.content());
+        assertTrue(response.totalElements() >= 2);
+    }
+
+    @Test
+    @DisplayName("Should throw when updating status of non-existent account")
+    void shouldThrowWhenUpdatingNonExistentAccountStatus() {
+        UpdateAccountStatusRequest request = new UpdateAccountStatusRequest(
+                Account.AccountStatus.FROZEN, "Test"
+        );
+
+        assertThrows(ResourceNotFoundException.class, () ->
+                accountService.updateAccountStatus(999999L, request));
+    }
+
+    @Test
+    @DisplayName("Should throw when trying to modify closed account")
+    void shouldThrowWhenModifyingClosedAccount() {
+        CreateAccountRequest createRequest = new CreateAccountRequest(
+                customerId, Account.AccountType.CHECKING, BigDecimal.ZERO, null
+        );
+        AccountResponse account = accountService.createAccount(createRequest);
+
+        // Close the account
+        accountService.updateAccountStatus(account.id(),
+                new UpdateAccountStatusRequest(Account.AccountStatus.CLOSED, null));
+
+        // Try to modify again
+        UpdateAccountStatusRequest request = new UpdateAccountStatusRequest(
+                Account.AccountStatus.FROZEN, "Test"
+        );
+
+        assertThrows(BadRequestException.class, () ->
+                accountService.updateAccountStatus(account.id(), request));
+    }
+
+    @Test
+    @DisplayName("Should throw when closing account with non-zero balance")
+    void shouldThrowWhenClosingAccountWithBalance() {
+        CreateAccountRequest createRequest = new CreateAccountRequest(
+                customerId, Account.AccountType.CHECKING, new BigDecimal("100.00"), null
+        );
+        AccountResponse account = accountService.createAccount(createRequest);
+
+        UpdateAccountStatusRequest request = new UpdateAccountStatusRequest(
+                Account.AccountStatus.CLOSED, null
+        );
+
+        assertThrows(BadRequestException.class, () ->
+                accountService.updateAccountStatus(account.id(), request));
+    }
+
+    @Test
+    @DisplayName("Should throw when creating account for non-existent customer")
+    void shouldThrowWhenCreatingAccountForNonExistentCustomer() {
+        CreateAccountRequest request = new CreateAccountRequest(
+                999999L, Account.AccountType.CHECKING, null, null
+        );
+
+        assertThrows(ResourceNotFoundException.class, () ->
+                accountService.createAccount(request));
+    }
 }
