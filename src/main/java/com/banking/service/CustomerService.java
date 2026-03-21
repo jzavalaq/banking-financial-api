@@ -23,6 +23,9 @@ import java.util.UUID;
 
 /**
  * Service for Customer operations.
+ *
+ * Handles business logic for customer creation, retrieval, updates,
+ * and search functionality.
  */
 @Service
 @RequiredArgsConstructor

@@ -155,4 +155,96 @@ class PaymentServiceTest {
         assertThrows(BadRequestException.class, () ->
                 paymentService.cancelPayment(created.id()));
     }
+
+    @Test
+    @DisplayName("Should throw when creating payment for non-existent account")
+    void shouldThrowWhenCreatingPaymentForNonExistentAccount() {
+        CreatePaymentRequest request = new CreatePaymentRequest(
+                "BA999999", Payment.PaymentType.BILL, new BigDecimal("50.00"),
+                "Test", "TEST123", "REF123", null, null
+        );
+
+        assertThrows(Exception.class, () -> paymentService.createPayment(request));
+    }
+
+    @Test
+    @DisplayName("Should throw when creating payment with insufficient funds")
+    void shouldThrowWhenCreatingPaymentWithInsufficientFunds() {
+        CreatePaymentRequest request = new CreatePaymentRequest(
+                accountNumber, Payment.PaymentType.BILL, new BigDecimal("5000.00"),
+                "Test", "TEST123", "REF123", null, null
+        );
+
+        assertThrows(Exception.class, () -> paymentService.createPayment(request));
+    }
+
+    @Test
+    @DisplayName("Should throw when getting non-existent payment")
+    void shouldThrowWhenGettingNonExistentPayment() {
+        assertThrows(Exception.class, () -> paymentService.getPaymentById(999999L));
+    }
+
+    @Test
+    @DisplayName("Should get payment by reference")
+    void shouldGetPaymentByReference() {
+        CreatePaymentRequest request = new CreatePaymentRequest(
+                accountNumber, Payment.PaymentType.BILL, new BigDecimal("50.00"),
+                "Test", "TEST123", "REF123", null, null
+        );
+
+        PaymentResponse created = paymentService.createPayment(request);
+        PaymentResponse found = paymentService.getPaymentByReference(created.paymentReference());
+
+        assertEquals(created.id(), found.id());
+        assertEquals(created.paymentReference(), found.paymentReference());
+    }
+
+    @Test
+    @DisplayName("Should throw when payment reference not found")
+    void shouldThrowWhenPaymentReferenceNotFound() {
+        assertThrows(Exception.class, () ->
+                paymentService.getPaymentByReference("PAY999999"));
+    }
+
+    @Test
+    @DisplayName("Should throw when cancelling non-existent payment")
+    void shouldThrowWhenCancellingNonExistentPayment() {
+        assertThrows(Exception.class, () -> paymentService.cancelPayment(999999L));
+    }
+
+    @Test
+    @DisplayName("Should create scheduled payment with pending status")
+    void shouldCreateScheduledPaymentWithPendingStatus() {
+        CreatePaymentRequest request = new CreatePaymentRequest(
+                accountNumber,
+                Payment.PaymentType.BILL,
+                new BigDecimal("100.00"),
+                "Test Payee",
+                "TEST123",
+                "REF123",
+                LocalDate.now().plusDays(7),
+                "Scheduled payment"
+        );
+
+        PaymentResponse response = paymentService.createPayment(request);
+
+        assertEquals(Payment.PaymentStatus.PENDING, response.status());
+        assertNotNull(response.scheduledDate());
+    }
+
+    @Test
+    @DisplayName("Should throw when creating payment for frozen account")
+    void shouldThrowWhenCreatingPaymentForFrozenAccount() {
+        // Freeze the account
+        var account = accountService.getAccountByNumber(accountNumber);
+        accountService.updateAccountStatus(account.id(),
+                new UpdateAccountStatusRequest(Account.AccountStatus.FROZEN, "Test"));
+
+        CreatePaymentRequest request = new CreatePaymentRequest(
+                accountNumber, Payment.PaymentType.BILL, new BigDecimal("50.00"),
+                "Test", "TEST123", "REF123", null, null
+        );
+
+        assertThrows(Exception.class, () -> paymentService.createPayment(request));
+    }
 }

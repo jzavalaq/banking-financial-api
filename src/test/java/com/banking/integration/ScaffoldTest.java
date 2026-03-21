@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  * Scaffold test to verify the application context loads correctly.
  */
 @SpringBootTest
-@ActiveProfiles("dev")
+@ActiveProfiles("test")
 class ScaffoldTest {
 
     @Test

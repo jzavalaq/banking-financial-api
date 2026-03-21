@@ -164,4 +164,100 @@ class TransactionServiceTest {
 
         assertTrue(history.totalElements() >= 2);
     }
+
+    @Test
+    @DisplayName("Should throw when depositing to non-existent account")
+    void shouldThrowWhenDepositingToNonExistentAccount() {
+        DepositRequest request = new DepositRequest("BA999999", new BigDecimal("100.00"), "Test");
+
+        assertThrows(Exception.class, () -> transactionService.deposit(request));
+    }
+
+    @Test
+    @DisplayName("Should throw when withdrawing from non-existent account")
+    void shouldThrowWhenWithdrawingFromNonExistentAccount() {
+        WithdrawalRequest request = new WithdrawalRequest("BA999999", new BigDecimal("100.00"), "Test");
+
+        assertThrows(Exception.class, () -> transactionService.withdraw(request));
+    }
+
+    @Test
+    @DisplayName("Should throw when transferring from non-existent account")
+    void shouldThrowWhenTransferringFromNonExistentAccount() {
+        TransferRequest request = new TransferRequest("BA999999", accountNumber2, new BigDecimal("100.00"), "Test");
+
+        assertThrows(Exception.class, () -> transactionService.transfer(request));
+    }
+
+    @Test
+    @DisplayName("Should throw when transferring to non-existent account")
+    void shouldThrowWhenTransferringToNonExistentAccount() {
+        TransferRequest request = new TransferRequest(accountNumber1, "BA999999", new BigDecimal("100.00"), "Test");
+
+        assertThrows(Exception.class, () -> transactionService.transfer(request));
+    }
+
+    @Test
+    @DisplayName("Should throw when getting history for non-existent account")
+    void shouldThrowWhenHistoryForNonExistentAccount() {
+        assertThrows(Exception.class, () ->
+                transactionService.getTransactionHistory("BA999999", 0, 10));
+    }
+
+    @Test
+    @DisplayName("Should get transaction by reference")
+    void shouldGetTransactionByReference() {
+        DepositRequest request = new DepositRequest(
+                accountNumber1, new BigDecimal("100.00"), "Test deposit"
+        );
+        TransactionResponse created = transactionService.deposit(request);
+
+        TransactionResponse found = transactionService.getTransactionByReference(created.transactionReference());
+
+        assertEquals(created.transactionReference(), found.transactionReference());
+        assertEquals(created.amount(), found.amount());
+    }
+
+    @Test
+    @DisplayName("Should throw when transaction reference not found")
+    void shouldThrowWhenTransactionReferenceNotFound() {
+        assertThrows(Exception.class, () ->
+                transactionService.getTransactionByReference("TXN999999"));
+    }
+
+    @Test
+    @DisplayName("Should throw when depositing to frozen account")
+    void shouldThrowWhenDepositingToFrozenAccount() {
+        var account = accountService.getAccountByNumber(accountNumber1);
+        accountService.updateAccountStatus(account.id(),
+                new UpdateAccountStatusRequest(Account.AccountStatus.FROZEN, "Test"));
+
+        DepositRequest request = new DepositRequest(accountNumber1, new BigDecimal("100.00"), "Test");
+
+        assertThrows(Exception.class, () -> transactionService.deposit(request));
+    }
+
+    @Test
+    @DisplayName("Should throw when withdrawing from frozen account")
+    void shouldThrowWhenWithdrawingFromFrozenAccount() {
+        var account = accountService.getAccountByNumber(accountNumber1);
+        accountService.updateAccountStatus(account.id(),
+                new UpdateAccountStatusRequest(Account.AccountStatus.FROZEN, "Test"));
+
+        WithdrawalRequest request = new WithdrawalRequest(accountNumber1, new BigDecimal("100.00"), "Test");
+
+        assertThrows(Exception.class, () -> transactionService.withdraw(request));
+    }
+
+    @Test
+    @DisplayName("Should throw when transferring from frozen source account")
+    void shouldThrowWhenTransferringFromFrozenSourceAccount() {
+        var account = accountService.getAccountByNumber(accountNumber1);
+        accountService.updateAccountStatus(account.id(),
+                new UpdateAccountStatusRequest(Account.AccountStatus.FROZEN, "Test"));
+
+        TransferRequest request = new TransferRequest(accountNumber1, accountNumber2, new BigDecimal("100.00"), "Test");
+
+        assertThrows(Exception.class, () -> transactionService.transfer(request));
+    }
 }

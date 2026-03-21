@@ -1,6 +1,7 @@
 package com.banking.service;
 
 import com.banking.dto.AccountDTOs.*;
+import com.banking.dto.PagedResponse;
 import com.banking.entity.Account;
 import com.banking.entity.Customer;
 import com.banking.exception.BadRequestException;
@@ -23,6 +24,9 @@ import java.util.UUID;
 
 /**
  * Service for Account operations.
+ *
+ * Handles business logic for account creation, retrieval, balance inquiries,
+ * and status management.
  */
 @Service
 @RequiredArgsConstructor
@@ -109,11 +113,22 @@ public class AccountService {
     }
 
     @Transactional(readOnly = true)
-    public Page<AccountSummary> getAccountsByCustomerId(Long customerId, int page, int size) {
+    public PagedResponse<AccountSummary> getAccountsByCustomerIdPaged(Long customerId, int page, int size) {
         int safeSize = Math.min(size, MAX_PAGE_SIZE);
         Pageable pageable = PageRequest.of(page, safeSize, Sort.by("createdAt").descending());
-        return accountRepository.findByCustomerId(customerId, pageable)
-                .map(this::toSummary);
+        Page<Account> accountPage = accountRepository.findByCustomerId(customerId, pageable);
+
+        return new PagedResponse<>(
+                accountPage.getContent().stream()
+                        .map(this::toSummary)
+                        .toList(),
+                accountPage.getNumber(),
+                accountPage.getSize(),
+                accountPage.getTotalElements(),
+                accountPage.getTotalPages(),
+                accountPage.isFirst(),
+                accountPage.isLast()
+        );
     }
 
     @Transactional

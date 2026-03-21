@@ -143,4 +143,103 @@ class CustomerServiceTest {
         assertNotNull(response.content());
         assertTrue(response.totalElements() >= 1);
     }
+
+    @Test
+    @DisplayName("Should list customers with ascending sort")
+    void shouldListCustomersWithAscendingSort() {
+        customerService.createCustomer(createRequest);
+
+        var response = customerService.listCustomers(0, 10, "firstName", "asc");
+
+        assertNotNull(response.content());
+    }
+
+    @Test
+    @DisplayName("Should reject duplicate tax ID")
+    void shouldRejectDuplicateTaxId() {
+        customerService.createCustomer(createRequest);
+
+        CreateCustomerRequest duplicateRequest = new CreateCustomerRequest(
+                "Jane", "Smith", "different@test.com",
+                "+1987654321", "456 Oak Ave", "Boston", "MA", "02101", "USA",
+                LocalDate.of(1985, 5, 20),
+                createRequest.taxId()  // Same tax ID
+        );
+
+        assertThrows(DuplicateResourceException.class, () ->
+                customerService.createCustomer(duplicateRequest));
+    }
+
+    @Test
+    @DisplayName("Should update all customer fields")
+    void shouldUpdateAllCustomerFields() {
+        CustomerResponse created = customerService.createCustomer(createRequest);
+
+        UpdateCustomerRequest updateRequest = new UpdateCustomerRequest(
+                "Jane",
+                "Smith",
+                "jane.smith@test.com",
+                "+1987654321",
+                "456 Oak Ave",
+                "Boston",
+                "MA",
+                "02102",
+                "Canada"
+        );
+
+        CustomerResponse updated = customerService.updateCustomer(created.id(), updateRequest);
+
+        assertEquals("Jane", updated.firstName());
+        assertEquals("Smith", updated.lastName());
+        assertEquals("jane.smith@test.com", updated.email());
+        assertEquals("+1987654321", updated.phone());
+        assertEquals("456 Oak Ave", updated.address());
+        assertEquals("Boston", updated.city());
+        assertEquals("MA", updated.state());
+        assertEquals("02102", updated.zipCode());
+        assertEquals("Canada", updated.country());
+    }
+
+    @Test
+    @DisplayName("Should reject duplicate email on update")
+    void shouldRejectDuplicateEmailOnUpdate() {
+        CustomerResponse created1 = customerService.createCustomer(createRequest);
+
+        CreateCustomerRequest secondRequest = new CreateCustomerRequest(
+                "Jane", "Smith", "jane.smith@test.com",
+                "+1987654321", "456 Oak Ave", "Boston", "MA", "02101", "USA",
+                LocalDate.of(1985, 5, 20), "987654321"
+        );
+        customerService.createCustomer(secondRequest);
+
+        // Try to update first customer with second customer's email
+        UpdateCustomerRequest updateRequest = new UpdateCustomerRequest(
+                null, null, "jane.smith@test.com",
+                null, null, null, null, null, null
+        );
+
+        assertThrows(DuplicateResourceException.class, () ->
+                customerService.updateCustomer(created1.id(), updateRequest));
+    }
+
+    @Test
+    @DisplayName("Should search customers")
+    void shouldSearchCustomers() {
+        customerService.createCustomer(createRequest);
+
+        var response = customerService.searchCustomers("John", 0, 10);
+
+        assertNotNull(response.content());
+    }
+
+    @Test
+    @DisplayName("Should throw when updating non-existent customer")
+    void shouldThrowWhenUpdatingNonExistentCustomer() {
+        UpdateCustomerRequest updateRequest = new UpdateCustomerRequest(
+                "Jane", null, null, null, null, null, null, null, null
+        );
+
+        assertThrows(ResourceNotFoundException.class, () ->
+                customerService.updateCustomer(999999L, updateRequest));
+    }
 }

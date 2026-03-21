@@ -23,6 +23,9 @@ import java.util.UUID;
 
 /**
  * Service for Payment operations.
+ *
+ * Handles business logic for creating, processing, and managing
+ * bill payments and transfers to external payees.
  */
 @Service
 @RequiredArgsConstructor
