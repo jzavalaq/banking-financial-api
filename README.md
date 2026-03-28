@@ -2,12 +2,13 @@
 
 [![Java](https://img.shields.io/badge/Java-21-orange?logo=openjdk)](https://openjdk.org/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.5-brightgreen?logo=springboot)](https://spring.io/projects/spring-boot)
+[![Apache Kafka](https://img.shields.io/badge/Apache%20Kafka-3.7+-black?logo=apachekafka)](https://kafka.apache.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-blue?logo=postgresql)](https://www.postgresql.org/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue?logo=docker)](Dockerfile)
 [![License](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
 [![CI](https://github.com/jzavalaq/banking-financial-api/actions/workflows/ci.yml/badge.svg)](https://github.com/jzavalaq/banking-financial-api/actions/workflows/ci.yml)
 
-> A production-grade banking and financial services API with multi-currency accounts, transactions, payments, loans, and comprehensive audit logging.
+> A production-grade banking and financial services API with multi-currency accounts, transactions, payments, loans, event-driven notifications via Kafka, and comprehensive audit logging.
 
 **Live Demo:** _Coming soon_ | **Swagger UI:** _Coming soon_ | **Postman Collection:** [banking-financial-api.postman_collection.json](postman/banking-financial-api.postman_collection.json)
 
@@ -18,6 +19,7 @@
 - **Customer Management**: Full KYC-compliant customer onboarding with identity verification
 - **Account Operations**: Checking and savings accounts with overdraft protection
 - **Financial Transactions**: Deposits, withdrawals, and inter-account transfers with ACID compliance
+- **Event-Driven Notifications**: Real-time transaction events published to Apache Kafka for downstream consumers
 - **Payment Processing**: Bill payments, scheduled payments, and payment cancellation
 - **Loan Management**: Personal and business loan origination with approval workflow
 - **JWT Authentication**: Secure token-based auth with refresh tokens and logout revocation
@@ -56,6 +58,14 @@ flowchart TB
         TransactionService[Transaction Service]
         PaymentService[Payment Service]
         LoanService[Loan Service]
+        EventPublisher[Event Publisher]
+    end
+
+    subgraph "Event Layer"
+        Kafka[Apache Kafka<br/>banking.transactions]
+        Notification[Notification Service]
+        Analytics[Analytics Service]
+        Fraud[Fraud Detection]
     end
 
     subgraph "Data Layer"
@@ -87,6 +97,13 @@ flowchart TB
     Payment --> PaymentService
     Loan --> LoanService
 
+    TransactionService --> EventPublisher
+    EventPublisher --> Kafka
+
+    Kafka --> Notification
+    Kafka --> Analytics
+    Kafka --> Fraud
+
     AuthService --> PostgreSQL
     CustomerService --> PostgreSQL
     AccountService --> PostgreSQL
@@ -112,6 +129,8 @@ flowchart TB
 | **Audit Trail** | Immutable audit logs for regulatory compliance (SOX, PCI-DSS) |
 | **Token Blacklist** | JWT blacklist for secure logout and token revocation |
 | **Flyway Migrations** | Version-controlled database schema evolution |
+| **Event-Driven Design** | Kafka publishes transaction events for real-time notifications, analytics, and fraud detection |
+| **Graceful Degradation** | Kafka optional in dev profile; events logged when Kafka unavailable |
 
 ---
 
@@ -123,6 +142,8 @@ flowchart TB
 | Spring Boot | 3.2.5 | Application framework |
 | Spring Security | 6.x | Authentication & authorization |
 | Spring Data JPA | 3.x | Data persistence |
+| Spring Kafka | 3.x | Event-driven messaging |
+| Apache Kafka | 3.7+ | Event streaming platform |
 | JWT (jjwt) | 0.12.5 | Token-based authentication |
 | PostgreSQL | 15+ | Production database |
 | H2 | 2.x | Development/testing database |
@@ -279,6 +300,29 @@ curl -X POST http://localhost:8080/api/v1/transactions/transfer \
 | `DB_USERNAME` | Database username | `banking_user` |
 | `DB_PASSWORD` | Database password | `banking_pass` |
 | `ALLOWED_ORIGINS` | CORS allowed origins | `http://localhost:3000` |
+| `KAFKA_ENABLED` | Enable Kafka event publishing | `true` (prod) / `false` (dev) |
+| `KAFKA_BOOTSTRAP_SERVERS` | Kafka broker addresses | `localhost:9092` |
+
+### Kafka Topic
+
+Transaction events are published to the `banking.transactions` topic with the following structure:
+
+```json
+{
+  "eventId": "550e8400-e29b-41d4-a716-446655440000",
+  "eventType": "TRANSFER_OUT",
+  "transactionReference": "TXN123456789ABC",
+  "accountNumber": "BA1234567890",
+  "relatedAccountNumber": "BA0987654321",
+  "amount": 150.00,
+  "balanceAfter": 850.00,
+  "currency": "USD",
+  "status": "COMPLETED",
+  "description": "Rent payment",
+  "timestamp": "2026-03-27T10:30:00Z",
+  "customerId": 1
+}
+```
 
 ---
 
@@ -300,13 +344,14 @@ open target/site/jacoco/index.html
 ## Project Structure
 
 ```
-src/main/java/com/jzavalaq/banking/
-├── config/          # Configuration classes (Security, CORS, JPA)
+src/main/java/com/banking/
+├── config/          # Configuration classes (Security, CORS, JPA, Kafka)
 ├── controller/      # REST API endpoints
 ├── service/         # Business logic layer
 ├── repository/      # Data access layer
 ├── entity/          # JPA entities
 ├── dto/             # Request/Response DTOs
+├── event/           # Kafka event classes (TransactionEvent)
 ├── exception/       # Custom exceptions
 ├── security/        # JWT authentication, rate limiting
 └── audit/           # Audit logging
