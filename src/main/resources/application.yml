@@ -103,7 +103,7 @@ cors:
 logging:
   level:
     root: INFO
-    com.banking: DEBUG
+    com.banking.api: DEBUG
     org.springframework.security: INFO
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
@@ -115,3 +115,13 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
     enabled: true
+
+# Kafka Configuration (disabled by default for dev)
+kafka:
+  enabled: false
+  bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+  producer:
+    acks: all
+    retries: 3
+  topic:
+    transactions: banking.transactions

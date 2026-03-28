@@ -57,5 +57,5 @@ cors:
 logging:
   level:
     root: WARN
-    com.banking: DEBUG
+    com.banking.api: DEBUG
     org.springframework.security: WARN

@@ -51,5 +51,15 @@ management:
 logging:
   level:
     root: WARN
-    com.banking: INFO
+    com.banking.api: INFO
     org.springframework.security: WARN
+
+# Kafka Configuration (enabled in production)
+kafka:
+  enabled: ${KAFKA_ENABLED:true}
+  bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+  producer:
+    acks: all
+    retries: 3
+  topic:
+    transactions: banking.transactions
