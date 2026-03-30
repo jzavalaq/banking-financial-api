@@ -8,7 +8,7 @@
 [![License](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
 [![CI](https://github.com/jzavalaq/banking-financial-api/actions/workflows/ci.yml/badge.svg)](https://github.com/jzavalaq/banking-financial-api/actions/workflows/ci.yml)
 
-> A production-grade banking and financial services API with multi-currency accounts, transactions, payments, loans, event-driven notifications via Kafka, and comprehensive audit logging.
+> Banking Financial API is a production-ready REST API for managing multi-currency bank accounts, processing SWIFT/SEPA payments, and detecting fraudulent transactions. It supports customer KYC onboarding, real-time transaction monitoring, loan origination with approval workflows, and event-driven notifications. Built with Spring Boot 3.2 and PostgreSQL, it includes JWT authentication, Docker deployment, and a CI/CD pipeline.
 
 **Live Demo:** _Coming soon_ | **Swagger UI:** _Coming soon_ | **Postman Collection:** [banking-financial-api.postman_collection.json](postman/banking-financial-api.postman_collection.json)
 
@@ -356,6 +356,44 @@ src/main/java/com/banking/
 ├── security/        # JWT authentication, rate limiting
 └── audit/           # Audit logging
 ```
+
+---
+
+## Production Deployment Checklist
+
+### Security
+- [ ] Set `JWT_SECRET` environment variable (min 256 bits)
+- [ ] Enable database SSL connections
+- [ ] Review CORS allowed origins
+- [ ] Configure rate limiting per endpoint
+- [ ] Set up token blacklist for logout revocation
+
+### Database
+- [ ] Run Flyway migrations
+- [ ] Configure HikariCP connection pooling
+- [ ] Set up database backups
+- [ ] Configure read replicas for reporting queries
+- [ ] Enable PostgreSQL SSL
+
+### Kafka Configuration
+- [ ] Configure Kafka broker addresses
+- [ ] Set up Kafka topic partitions for scalability
+- [ ] Configure dead letter queue for failed events
+- [ ] Set up Kafka monitoring and alerting
+
+### Infrastructure
+- [ ] Configure health check endpoints
+- [ ] Set up monitoring and alerting (Prometheus/Grafana)
+- [ ] Configure log aggregation (ELK/Loki)
+- [ ] Set up distributed tracing (OpenTelemetry)
+- [ ] Configure audit log retention policy
+
+### Testing
+- [ ] Run full test suite: `mvn test`
+- [ ] Run integration tests: `mvn verify`
+- [ ] Verify health endpoints
+- [ ] Test Kafka event publishing
+- [ ] Verify audit logging works correctly
 
 ---
 
